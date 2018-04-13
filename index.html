@@ -19,31 +19,76 @@
             background-size: cover;
             background-repeat: no-repeat;
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 25px;
-        }
-        
-        .container {
-            width: 80%;
-        }
-        
-        h1 {
-            padding-left: 10px;
-            margin-top: 0px;
-            float: right;
-            width: 70%;
             font-size: 20px;
         }
         
-        .jumbotron {
-            margin-top: 15px;
-            height: 10%;
-            padding-top: 20px;
-            padding-bottom: 10px;
+        .container {
+            width: 100%;
+            padding-bottom: 5px;
+            border-bottom: 1px #e6e6ff solid;
         }
         
-        .main-div {
-            background-color: lavender;
+        .jumbo-hdr {
+            margin-top: 0px;
+            float: right;
+            width: 80%;
+            height: 12%;
+            font-size: 18px;
+        }
+        
+        .jumbotron {
+            margin: 20px auto;
+            width: 90%;
+            margin-top: 15px;
+            height: 15%;
+            padding-top: 15px;
+            padding-left: 5px;
+            padding-right: 5px;
+            padding-bottom: 10px;
+            background-color: #bfbfbf;
+            border: 1px #e6e6ff solid;
+        }
+        
+        .start-div,
+        .answers-div,
+        .feedback-div,
+        .start-over-div {
+            background-color: #bfbfbf;
             text-align: center;
+            height: 80%;
+            padding-top: 5px;
+            padding-bottom: 35px;
+            /* border-top: 1px #e6e6ff solid; */
+        }
+        
+        .start-div {
+            display: block;
+        }
+        
+        .answers-div,
+        .feedback-div,
+        .start-over-div {
+            display: none;
+        }
+        
+        #btn-start {
+            text-align: center;
+            margin-top: 250px;
+            margin-bottom: 250px;
+            height: 46px;
+            width: 500px;
+            font-size: 30px;
+            font-weight: 700;
+        }
+        
+        #btn-restart {
+            text-align: center;
+            margin-top: 45px;
+            margin-bottom: 25px;
+            height: 46px;
+            width: 500px;
+            font-size: 30px;
+            font-weight: 700;
         }
         
         .row {
@@ -51,57 +96,87 @@
             margin-bottom: 15px;
         }
         
-        #btn-start {
-            height: 46px;
-            width: 137px;
-            font-size: 30px;
-            font-weight: 700;
+        ul {
+            list-style-type: none;
+        }
+        
+        a:link {
+            background-color: #b8b894;
+            color: #000000;
+            padding: 14px 25px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            width: 500px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+        
+        a:hover,
+        a:active {
+            background-color: #80ffbf;
+        }
+        
+        .start-over-row {
+            margin-top: 60px;
+            margin-bottom: 15px;
         }
     </style>
 
 </head>
 
 <body>
-    <div class="container">
-        <div class="jumbotron" style="padding-left: 30px; padding-right: 30px;">
-            <img class="header-img" src="assets/images/person.gif" width="30%" height="25%">
-            <h1>Totally Trivial Trivia!</h1>
+    <div class="jumbotron">
+        <div class="container" id="jumbo" style="padding-left: 20px; padding-right: 20px; margin-bottom: 0px">
+            <img class="header-img" src="assets/images/person.gif" width="15%" height="10%">
+            <h1 class="jumbo-hdr">Totally Trivial Trivia!</h1>
         </div>
-        <div class="main-div">
-            <div class="row">
-                <div class="col-sm-3"></div>
-                <div class="col-sm-3">
-                    Time Remaining</div>
-                <div class="col-sm-3" id="time-val">0 seconds</div>
-                <div class="col-sm-3"></div>
-            </div>
-            <div class="row">
-                <div class="col-sm-12" id="question msg-text">Question</div>
-            </div>
-            <div class="row">
-                <div class="col-sm-12" id="correct-answer answers-choice correct-answers-count">Correct Answers 3 Muiltiple choice answers</div>
-            </div>
-            <div class="row">
-                <div class="col-sm-12" id="answer-image answers-choice incorrect-answers-count">Incorrect answers 4 Multiple choice answers</div>
-            </div>
-            <div class="row">
-                <div class="col-sm-12" id="answers-choice unanswered-cnt">Unanswered count 5 Multiple choice answers</div>
-            </div>
-            <div class="row">
-                <div class="col-sm-12" id="answers-choice">Multiple choice answers</div>
-            </div>
-            <div class="row">
-                <div class="col-sm-5"></div>
-                <div class="col-sm-2">
-                    <button id="btn-start" type="button" autofocus onclick="start()">START</button>
-                </div>
-                <div class="col-sm-5"></div>
-            </div>
-            <div class="row">
-                <div class="col-sm-12"></div>
-            </div>
+        <div class="start-div">
+            <button id="btn-start" type="button">START</button>
         </div>
 
+        <div class="answers-div">
+            <div class="time-row">
+                <h2>Time Remaining: <span id="seconds-elapsed"></span></h2>
+            </div>
+            <div class="question-row">
+                <h2 id="question"></h2>
+            </div>
+            <div class="answers-div" id="answers-choice"></div>
+        </div>
+
+        <div class="feedback-div">
+            <div class="time-row">
+                <h2>Time Remaining: <span id="seconds-elapsed"></span></h2>
+            </div>
+            <div class="feedback-row1">
+                <h2 id="feedback1"></h2>
+            </div>
+            <div class="feedback-row2">
+                <h2 id="feedback2"></h2>
+            </div>
+            <div class="image-div" id="image"></div>
+        </div>
+
+        <div class="start-over-div">
+            <div class="results-row1">
+                <h2>All done, heres how you did!</h2>
+            </div>
+            <div class="results-row2">
+                <div class="correct-row">
+                    <h2>Correct Answers: <span id="correct"></span></h2>
+                </div>
+                <div class="incorrect-row">
+                    <h2>Incorrect Answers: <span id="incorrect"></span></h2>
+                </div>
+                <div class="unanswered-row">
+                    <h2>Unanswered Questions: <span id="unanswered"></span></h2>
+                </div>
+            </div>
+            <div class="start-over-row">
+                <button id="btn-restart" type="button">START OVER?</button>
+            </div>
+        </div>
     </div>
 
 </body>
