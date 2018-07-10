@@ -5,15 +5,15 @@ $(document).ready(function() {
     var incorrectAnsCnt; // count incorrect answers
     var unAnsQuestionCnt; // count unanswered questions
     var choice; // record the answer index number selected by the user
-    var intervalId; // interval id from setInterval
+    var timerId; // timerId to wait for the user to choose answer
     var secondsElapsed; // seconds elapsed counter
 
     // init variables
     correctAnsCnt = 0;
     incorrectAnsCnt = 0;
     unAnsQuestionCnt = 0;
-    intervalId = 0;
-    secondsElapsed = 0;
+    timerId = 0;
+    secondsElapsed = 10;
 
     // declare questions array
     var questions = [];
@@ -51,11 +51,13 @@ $(document).ready(function() {
             incorrectAnsCnt++; // increment incorrect answers counter
         }
 
-        // since a selection has been made, no need to wait for the counter hence disrupting
-        // it to enable the system to ask the next question immediately within the start function
-        secondsElapsed = -5;
-
-        start();
+        // since a selection has been made, clear the interval and delay the start of the next question
+        // so as to display the feedback for 5 seconds
+        clearInterval(timerId);
+        var messageTimer = setTimeout(function() {
+            clearTimeout(messageTimer);
+            start();
+        }, 5000);
     }
 
     /*
@@ -75,34 +77,6 @@ $(document).ready(function() {
     }
 
     /*
-     * function sets up the wait time which is five seconds for the user to select the
-     * correct answer. The secondsElapsed is decremented by one. If the user does not
-     * select a choice, a feedback message is given and the system goes to the start
-     * function to prepare another question.
-     */
-    function waitUserChoice() {
-        if (secondsElapsed === -5) {
-            secondsElapsed = 11;
-            getQuestion();
-        }
-
-        // show time left
-        secondsElapsed--; //  decrement counter
-        $("#seconds-elapsed").html("<strong>" + secondsElapsed + " seconds</strong>");
-
-        if (secondsElapsed < 0) {
-            unAnsQuestionCnt++;
-
-            displayFeedback("TIMEOUT")
-
-            secondsElapsed = -5; // disrupt counter so as to ask next question immedately
-
-            start();
-        }
-
-    }
-
-    /*
      * function display feedback on the answer selected or when the user does not
      * respond in time to the question.
      */
@@ -113,22 +87,22 @@ $(document).ready(function() {
 
         // display feedback div
         $(".feedback-div").css("display", "block");
-        $("#seconds-elapsed").html("<strong>" + secondsElapsed + " seconds</strong>");
+        $("#seconds-elapsed").html("<strong>Time Remaining: " + secondsElapsed + " seconds</strong>");
 
         if (fdbk === "TIMEOUT") {
             $("#feedback1").html("<h2><strong>Out of Time !!!</strong></h2>");
 
             //display correct answer
-            $("#feedback2").html("<h2><strong>The correct answer was: " + getAnswer(randomNum) + " </strong></h2>");
+            $("#feedback2").html("<h2><strong>The correct answer is: " + getAnswer(randomNum) + " </strong></h2>");
         } else if (fdbk === "CORRECT") {
             $("#feedback1").html("<h2>Correct!!!</h2>");
-            $("#feedback2").html("");
+            $("#feedback2").html("<h2><strong>The correct answer is: " + getAnswer(randomNum) + " </strong></h2>");
         } else {
 
             $("#feedback1").html("<h2><strong>Nope!!!</strong></h2>");
 
             //display correct answer
-            $("#feedback2").html("<h2><strong>The correct answer was: " + getAnswer(randomNum) + " </strong></h2>");
+            $("#feedback2").html("<h2><strong>The correct answer is: " + getAnswer(randomNum) + " </strong></h2>");
         }
         //display image
         $("#image").html("<img src='" + getImage(randomNum) + "' height='280' width='350'>");
@@ -140,8 +114,7 @@ $(document).ready(function() {
 
     /*
      * Delete an asked question from the questions array and all related elements from the
-     * other arrays. An empty question array is tested to stop the timer and prompt a restart
-     * within the getQuestion function.
+     * other arrays.
      */
     function deleteQuestion(num) {
 
@@ -150,41 +123,6 @@ $(document).ready(function() {
         CorrectChoice.splice(num, 1);
         Images.splice(num, 1);
 
-    }
-
-    /*
-     * retrieve a question from the questions array using a random number and display multiple
-     * choice answers.
-     */
-    function getQuestion() {
-
-        // check if more questions available
-        if (questions.length > 0) {
-            // more questions available to process
-
-            // get random number to pick up question from array
-            randomNum = Math.floor(Math.random() * questions.length);
-
-            // hide answers, feedback and start-over divs
-            $(".start-div").css("display", "none");
-            $(".feedback-div").css("display", "none");
-            $(".start-over-div").css("display", "none");
-
-            // display answers div
-            $(".answers-div").css("display", "block");
-            $("#question").html("<h2>" + questions[randomNum] + "</h2>");
-
-            // display multiple choice answers
-            $("#answers-choice").html("<ul id='choice'>");
-            for (let answer of answers[randomNum]) {
-                $("ul").append("<li id='selection'><a href='#'>" + answer + "</a></li>");
-            }
-
-        } else {
-            // no more questions. Clear interval identity and display the results
-            clearInterval(intervalId);
-            results();
-        }
     }
 
     /*
@@ -206,53 +144,36 @@ $(document).ready(function() {
     /*
      * executed when the Start utton is clicked. Function can also be initiated without
      * a button click in order to pick up the next question. When the function is initiated
-     * through a button click, we ask the next question immediatedly. When initiated within
-     * the program logic, we allow the feedback from the previous question to display longer
+     * through a button click.
      */
     function start() {
 
-        clearInterval(intervalId);
-        if (secondsElapsed === -5) {
-            intervalId = setInterval(waitUserChoice, 3000);
-        } else {
-
-            secondsElapsed = 11;
+        if (questions.length != 0) {
 
             getQuestion();
+            secondsElapsed = 10;
+            timerId = setInterval(function() {
 
-            intervalId = setInterval(waitUserChoice, 3000);
+                $("#seconds-elapsed").html("<strong>" + secondsElapsed + " seconds</strong>");
+                secondsElapsed--; //  decrement seconds counter
+
+                if (secondsElapsed === 0) {
+                    unAnsQuestionCnt++;
+
+                    displayFeedback("TIMEOUT");
+                    clearInterval(timerId);
+                    var messageTimer = setTimeout(function() {
+                        clearTimeout(messageTimer);
+                        start();
+                    }, 5000);
+                }
+            }, 1000); // delay 1 second with the results displayed
+        } else {
+            results();
         }
 
     }
 
-    /*
-     * Put data into the arrays
-     */
-    function populateArrays() {
-
-        questions = ["Who is Chuck Noris?", "Who is Taylor Swift?", "What is Barack Obama known for?",
-            "What is Albert Einstein known for?", "Where is Cecil John Rhodes buried?",
-            "Which is out of place?"
-        ];
-
-        answers = [
-            ["Actor", "Singer", "Massachusets Former Governor", "Lakewood Church Pastor"],
-            ["Olympic Gold Medalist", "Tennis No.1 seed", "Singer", "US Ambassador to United Nations"],
-            ["Actor", "Inventor of Linux Operating System", "US Ambassador to United Nations",
-                "President of United States"
-            ],
-            ["Theoretical physicist", "Germany Evangelist", "German Chancellor", "Bulb Inventor"],
-            ["Zimbabwe Matopo Hills", "St George's Chapel, Windsor Castle",
-                "Andrew Johnson National Cemetery", "Queen Victoria Falls, Zimbabwe"
-            ],
-            ["North Carolina", "New York", "London", "New Jersey"]
-        ];
-
-        CorrectChoice = [0, 2, 3, 0, 0, 2];
-
-        Images = ["assets/images/ChuckNorris.gif", "assets/images/Taylor.gif", "assets/images/Obama.gif", "assets/images/Albert.gif", "assets/images/Matobo.jpg", "assets/images/London.gif"];
-
-    }
 
     /*
      * executes when the restart button is clicked. variables and arrays are re-initialized.
@@ -262,16 +183,85 @@ $(document).ready(function() {
         correctAnsCnt = 0;
         incorrectAnsCnt = 0;
         unAnsQuestionCnt = 0;
-        intervalId = 0;
-        secondsElapsed = 0;
 
         populateArrays();
-
+        clearInterval(timerId);
         start();
 
     }
 
-    populateArrays();
+
+    /*
+     * retrieve a question from the questions array using a random number and display multiple
+     * choice answers.
+     */
+    function getQuestion() {
+
+        // get random number to pick up question from array
+        randomNum = Math.floor(Math.random() * questions.length);
+
+        // hide answers, feedback and start-over divs
+        $(".start-div").css("display", "none");
+        $(".feedback-div").css("display", "none");
+        $(".start-over-div").css("display", "none");
+
+        // display questions div
+        $(".answers-div").css("display", "block");
+        $("#question").html("<h2>" + questions[randomNum] + "</h2>");
+
+        // display multiple choice answers
+        $("#answers-choice").html("<ul id='choice'>");
+        for (let answer of answers[randomNum]) {
+            $("ul").append("<li id='selection'><a href='#'>" + answer + "</a></li>");
+        }
+    }
+
+
+    /*
+     * Put data into the arrays
+     */
+    function populateArrays() {
+
+        questions = ["Who is Chuck Noris?",
+            "Who is Taylor Swift?",
+            "What is Barack Obama known for?",
+            "Who was Albert Einstein?",
+            "Where is Cecil John Rhodes buried?",
+            "Which is out of place?",
+            "Donald Trump inaugurated as President of The United States?",
+            "The first team to land on the moon",
+            "American champion who fought in Rumble of the jungle",
+            "How many states are there in the USA as of 2018?"
+        ];
+
+        answers = [
+            ["An Actor", "A Singer", "The Massachusets Former Governor", "A Lakewood Church Pastor"],
+
+            ["An Olympic Gold Medalist", "A Tennis No.1 seed", "A Singer", "The US Ambassador to United Nations"],
+
+            ["An Actor", "The Inventor of Linux Operating System", "The US Ambassador to United Nations", "The President of United States"],
+
+            ["A Theoretical physicist", "A Germany Evangelist", "A German Chancellor", "A Bulb Inventor"],
+
+            ["Zimbabwe Matopo Hills", "St George's Chapel, Windsor Castle", "Andrew Johnson National Cemetery", "Queen Victoria Falls, Zimbabwe"],
+
+            ["North Carolina", "New York", "London", "New Jersey"],
+            ["November 2016", "January 2017", "December 2016", "January2016"],
+            ["Neil Armstrong, Mike Collins & Buzz Aldrin", "Lance Armstrong, Mike Collins & Neil Armstrong", "John F Kennedy, Niel Armstrong & Mike Collins", "Yuri Gagarin, Neil Armstrong & Buzz Aldrin"],
+            ["Mike Tyson", "Muhammad Ali", "Evander Holyfield", "Floyd Mayweather Jnr"],
+            ["52 states", "51 states", "53 states", "50 states"]
+        ];
+
+        CorrectChoice = [0, 2, 3, 0, 0, 2, 1, 0, 1, 3];
+
+        Images = ["assets/images/ChuckNorris.gif", "assets/images/Taylor.gif", "assets/images/Obama.gif", "assets/images/Albert.gif", "assets/images/Matobo.jpg", "assets/images/London.gif", "assets/images/Trump.jpg", "assets/images/astronauts.jpg", "assets/images/rumble.jpg", "assets/images/usamap.png"];
+
+    }
+
+
+    populateArrays(); // populate arrays with data
+
+    // listen for button clicks
     $("body").on("click", "#btn-start", start);
     $("body").on("click", "#selection", selectAnswer);
     $("body").on("click", "#btn-restart", restart);
